@@ -25,5 +25,4 @@ void kernel_start(void)
     } */
     efface_ecran();
     init_processes();
-    idle();
 }

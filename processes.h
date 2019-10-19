@@ -8,7 +8,7 @@
 typedef enum proccess_state process_state;
 enum proccess_state {
     ELU,
-    ELIGIBLE
+    ACTIVABLE
     };
 
 struct process {
@@ -22,5 +22,7 @@ struct process {
 //void *context_idle, *context_proc1;
 void idle();
 void proc1();
+uint16_t mon_pid();
+void ordonnance();
 void init_processes();
 void ctx_sw(void*, void*);
