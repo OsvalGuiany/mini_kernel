@@ -6,13 +6,15 @@
 
 struct process processes[2];
 struct process *running;
+int n_idle = 0;
+int n_proc = 0;
 
 void idle(){
   for(;;){
     printf("bienvenue chez idle \n");
     printf("------------------------ \n");
     printf("processus idle, je tente de passer la main au proc1 \n");
-    printf("mon pid est : %d \n", mon_pid());
+    printf("mon pid est : %d, n_idle est hop !\n", mon_pid());
     ordonnance();
     //ctx_sw(processes[0].save_zone,  processes[1].save_zone);
   }
@@ -25,7 +27,7 @@ void proc1(){
     printf("------------------------ \n");
 
     printf("[proc1] idle a donne la main \n");
-    printf("processus proc1 de pid %d \n", mon_pid());
+    printf("processus proc1 de pid %d , n_proc est et hop !", mon_pid());
     ordonnance();
   }
 }
@@ -38,6 +40,7 @@ void ordonnance(){
 
   if(running == processes){
       running = processes + 1;
+      n_proc ++;
       processes[0].state = ACTIVABLE;
       processes[1].state = ELU;
       ctx_sw(processes[0].save_zone, processes[1].save_zone);
@@ -45,6 +48,7 @@ void ordonnance(){
   }
   else if(running == processes + 1){
     running = processes;
+    n_idle++;
     processes[1].state = ACTIVABLE;
     processes[0].state = ELU;
     ctx_sw(processes[1].save_zone, processes[0].save_zone);

@@ -48,13 +48,13 @@ void efface_ecran(){
 }
 
 void traite_car(char c){
-  if(strcmp(&c, "\b") == 0){
+  if(c == '\b'){
      if(col_curseur>0){
        col_curseur -=1 ;
        place_curseur(lig_curseur, col_curseur);
      }
   }
-  else if(strcmp(&c, "\t") == 0){
+  else if(c == '\t'){
      uint32_t tabul = (col_curseur/8)*8+8;
 
      if(tabul > 79){
@@ -64,25 +64,26 @@ void traite_car(char c){
      col_curseur = tabul;
      place_curseur(lig_curseur, col_curseur);
   }
-  else if(strcmp(&c, "\n") == 0){
+
+  else if(c=='\n'){
     col_curseur = 0;
     lig_curseur += 1;
     place_curseur(lig_curseur, 0);
 
   }
-  else if (strcmp(&c, "\f") == 0){
+  else if (c=='\f'){
      efface_ecran();
      col_curseur = 0;
      lig_curseur = 0;
      place_curseur(col_curseur, lig_curseur);
   }
-  else if(strcmp(&c, "\r") == 0){
+  else if(c=='\r'){
     col_curseur = 0 ;
      place_curseur(lig_curseur, 0);
   }
-  else{
-     ecrit_car(lig_curseur, col_curseur, c);
-     avance_curseur();
+  else if(c>=32 && c<127){
+    ecrit_car(lig_curseur, col_curseur, c);
+    avance_curseur();
   }
 }
 
@@ -95,6 +96,8 @@ void defilement(){
   for(uint32_t j=0; j<80; j++){
     ecrit_car(24, j, 32);
   }
+  lig_curseur = 79;
+  col_curseur = 0;
 }
 
 void avance_curseur(){
@@ -126,6 +129,10 @@ void avance_curseur(){
 }
 
 void console_putbytes(char *chaine, uint32_t taille){
+  if(lig_curseur>23){
+    defilement();
+    lig_curseur--;
+  }
   for(uint32_t i = 0; i<taille; i++){
 
     traite_car(chaine[i]);
