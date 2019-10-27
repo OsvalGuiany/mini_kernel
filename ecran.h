@@ -9,3 +9,4 @@ void traite_car(char c);
 void console_putbytes(char *, uint32_t);
 void print_right(char *, int);
 void defilement();
+void avance_curseur();

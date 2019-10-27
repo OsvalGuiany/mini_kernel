@@ -1,13 +1,11 @@
 #include "cpu.h"
 #include <string.h>
 #include "inttypes.h"
-
+#include "ecran.h"
 #define start_p 0xB8000;
 
 static uint32_t lig_curseur = 0;
 static uint32_t col_curseur = 0;
-
-void avance_curseur();
 
 uint16_t *ptr_mem(uint32_t lig, uint32_t col)
 {
@@ -68,6 +66,10 @@ void traite_car(char c){
   else if(c=='\n'){
     col_curseur = 0;
     lig_curseur += 1;
+
+    if(lig_curseur>24){
+      defilement();
+    }
     place_curseur(lig_curseur, 0);
 
   }
@@ -96,7 +98,7 @@ void defilement(){
   for(uint32_t j=0; j<80; j++){
     ecrit_car(24, j, 32);
   }
-  lig_curseur = 79;
+  lig_curseur = 24;
   col_curseur = 0;
 }
 
@@ -129,10 +131,7 @@ void avance_curseur(){
 }
 
 void console_putbytes(char *chaine, uint32_t taille){
-  if(lig_curseur>23){
-    defilement();
-    lig_curseur--;
-  }
+
   for(uint32_t i = 0; i<taille; i++){
 
     traite_car(chaine[i]);
