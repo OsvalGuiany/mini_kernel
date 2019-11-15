@@ -24,5 +24,5 @@ void kernel_start(void)
         hlt();
     } */
     efface_ecran();
-    init_processes();
+    init_processes(3);
 }

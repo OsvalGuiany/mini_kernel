@@ -12,7 +12,7 @@ enum proccess_state {
     };
 
 struct process {
-  uint16_t pid;
+  uint32_t pid;
   char name[32];
   process_state state;
   uint32_t save_zone[5];
@@ -24,5 +24,6 @@ void idle();
 void proc1();
 uint16_t mon_pid();
 void ordonnance();
+uint32_t create_process(char *name, void *proc_address);
 void init_processes();
 void ctx_sw(void*, void*);
