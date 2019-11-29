@@ -5,6 +5,7 @@
 #include "stdbool.h"
 #include "segment.h"
 #include "time_print.h"
+#include "processes.h"
 
 #define QUARTZ 0x1234DD
 #define CLOCKFREQ 50
@@ -20,7 +21,7 @@ void tic_PIT() {
   snprintf(ch, 9, "%02d:%02d:%02d", (compteur/60)/60, (compteur/60)%60, compteur%60);
   masque_IRQ(0, false);
   print_right(ch, 8);
-
+  ordonnance();
 }
 
 void set_timer(){
@@ -36,6 +37,7 @@ void init_traitant_IT(int32_t num_IT, void (*traitant)(void)) {
     //deuxième mot
     // autre notation possible *(vect_int+1)
     *(uint32_t *)((void *)vect_int+4) = ((uint32_t)traitant&0xffff0000) + 0x8E00;
+    
 }
 
 void masque_IRQ(uint32_t num_IRQ, bool masque) {
@@ -75,4 +77,8 @@ void masque_IRQ(uint32_t num_IRQ, bool masque) {
     }
 
     outb(val_act, 0x21);
+}
+
+int get_compteur(){
+  return compteur;
 }

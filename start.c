@@ -19,10 +19,18 @@ void kernel_start(void)
     printf("Manufacturer, Mercury ... \n");
     // on ne doit jamais sortir de kernel_start
     sti();
+    */
+    
+    
+    set_timer();
+    masque_IRQ(0,0);
+    init_traitant_IT(32, traitant_IT_32);
+
+    efface_ecran();
+    init_processes(8);
+
     while (1) {
         // cette fonction arrete le processeur
         hlt();
-    } */
-    efface_ecran();
-    init_processes(3);
+    } 
 }
