@@ -98,12 +98,14 @@ void ordonnance(){
 
   next = get_next();
 
-  running->state = ACTIVABLE;
-
   next ->state = ELU;
 
-  if(running->state != ENDORMI)
+  if(running->state == ENDORMI)
+    add_in_sleep(running);
+  else
+  {
     add_process(running);
+  }
 
   prev = running;
   running = next;
@@ -147,7 +149,7 @@ void init_processes(int n){
   processes[0]->state = ELU;
   processes_created++;
   
-  if(create_process("proc1", &proc1) == -1 ){
+  if(create_process("proc1", &proc1) == -1){
     printf("the process proc1 cannot be created \n");
     return ;
   }
@@ -185,9 +187,12 @@ void init_processes(int n){
 }
 
 void add_process(struct process *p){
-  
+
+  p->next = NULL;
+
   if(p->state == ENDORMI) {
-    return ;
+    add_in_sleep(p);
+    return;
   }
 
   p->state = ACTIVABLE;
@@ -203,37 +208,10 @@ void add_process(struct process *p){
   
 }
 
-void remove_process(struct process *p) {
-  struct process *jet = head;
-  struct process *prev;
-  
-  if(jet == NULL ) {
-    return ;
-  }
-
-  while(jet != NULL && jet != p) {
-    prev = jet;
-    jet = jet->next;
-  }
-
-  if (prev == NULL ) {
-    head = jet->next;
-    jet->next = NULL;
-  } else {
-    if(jet != NULL ){
-      prev->next = jet->next;
-      jet->next = NULL;
-    }
-      
-    else
-      prev->next = NULL;
-    
-  }
-
-}
-
 void add_in_sleep (struct process *p) {
-  remove_process(p);
+  printf("adding %d with time %d in sleep and current %d\n", 
+     p->pid, p->wake_time, get_compteur());
+
   p->state = ENDORMI;
   p->next = NULL;
 
@@ -244,7 +222,7 @@ void add_in_sleep (struct process *p) {
     struct process *jet, *prev;
      jet = sleep_head;
 
-    while ((jet != NULL) && (jet->wake_time < p->wake_time)) {
+    while ((jet != NULL) && (jet->wake_time <= p->wake_time)) {
       prev = jet;
       jet = jet->next;
     }
@@ -275,13 +253,18 @@ void remove_sleep_head() {
   }
   p->wake_time = 0;
   p->next = NULL;
+
+  p->state = ACTIVABLE;
   add_process(p);
 }
 
 void wake_up_processes(){
-  int nb_secondes = nbr_secondes();
 
-  while (sleep_head != NULL && sleep_head->wake_time <= nb_secondes) {
+  while (sleep_head != NULL && sleep_head->wake_time <= get_compteur()) {
+
+    printf("waking up of process %d with sleep time %d \n", 
+      sleep_head->pid, sleep_head->wake_time);
+
     remove_sleep_head();
   }
 }
@@ -303,7 +286,7 @@ struct process *get_next(){
 void dors(uint32_t nbr_secs) {
    int wake_time = nbr_secs*60 + get_compteur();
    running->wake_time = wake_time;
-   add_in_sleep(running);
+   running->state = ENDORMI ;
    ordonnance();
 }
 
