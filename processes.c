@@ -12,6 +12,7 @@ int N;
 uint32_t processes_created = 0;
 struct process *head, *last;
 struct process *sleep_head, *sleep_last;
+struct process *dead_list;
 
 void idle(){
   for (;;) {
@@ -23,11 +24,13 @@ void idle(){
 }
 
 void proc1(){
-  for (;;) {
+  for (uint32_t i = 0; i < 5 ; i++) {
     printf("[temps = %u] processus %s pid = %i\n", nbr_secondes(),
     mon_nom(), mon_pid());
     dors(2);
   }
+
+  //fin_processus();
 }
 
 void proc2(){
@@ -47,12 +50,14 @@ void proc3(){
 }
 
 void proc4(){
-  for (;;) {
+  for (uint32_t i= 0; i < 7; i++) {
     printf("[%s] pid = %i\n", mon_nom(), mon_pid());
     sti();
     hlt();
     cli();
   }
+
+  //fin_processus();
 }
 
 void proc5(){
@@ -102,14 +107,14 @@ void ordonnance(){
 
   if(running->state == ENDORMI)
     add_in_sleep(running);
-  else
-  {
+  else if (running->state != MOURANT ) {
     add_process(running);
   }
 
   prev = running;
   running = next;
   wake_up_processes();
+  kill_dead_processes();
   ctx_sw(prev->save_zone, next->save_zone);
 }
 
@@ -128,6 +133,7 @@ uint32_t create_process(char *name, void *proc_address){
   p->next = NULL;
   p->save_zone[1] = (uint32_t)(p->reg+STACK_LENGTH-1);
   p->reg[511] = (uint32_t )proc_address;
+  p->reg[510] = (uint32_t)&fin_processus;
   add_process(p);
   processes[processes_created] = p;
   
@@ -135,6 +141,32 @@ uint32_t create_process(char *name, void *proc_address){
   return processes_created - 1 ;
 
 }
+
+void fin_processus(){
+  running->state = MOURANT;
+
+  running->next = dead_list;
+
+  dead_list = running;
+  ordonnance();
+}
+
+void kill_dead_processes(){
+  struct process *jet;
+
+  if (dead_list != NULL ) {
+    jet = dead_list->next;
+
+    while (jet != NULL) {
+      struct process *p = jet;
+      jet = jet->next;
+      printf("le processus %d est mort à %d\n", p->pid, get_compteur());
+      free(p);
+    }
+  }
+}
+
+
 // on peut s'entrainer a utiliser GDB avec ce code de base
 // par exemple afficher les valeurs de x, n et res avec la commande display
 void init_processes(int n){

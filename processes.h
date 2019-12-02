@@ -9,7 +9,8 @@ typedef enum proccess_state process_state;
 enum proccess_state {
     ELU,
     ACTIVABLE,
-    ENDORMI
+    ENDORMI,
+    MOURANT
     };
 
 struct process {
@@ -30,10 +31,12 @@ uint16_t mon_pid();
 char *mon_nom();
 void ordonnance();
 uint32_t create_process(char *name, void *proc_address);
+void fin_processus();
+void kill_dead_processes();
 void init_processes();
 void ctx_sw(void*, void*);
 void remove_sleep_head();
-void remove_process(struct process *p);
+//void remove_process(struct process *p);
 void add_process(struct process *p);
 void add_in_sleep (struct process *p);
 void wake_up_processes();

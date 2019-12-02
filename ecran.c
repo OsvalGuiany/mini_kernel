@@ -4,7 +4,7 @@
 #include "ecran.h"
 #define start_p 0xB8000;
 
-static uint32_t lig_curseur = 0;
+static uint32_t lig_curseur = 1;
 static uint32_t col_curseur = 0;
 
 uint16_t *ptr_mem(uint32_t lig, uint32_t col)
@@ -86,6 +86,10 @@ void traite_car(char c){
   else if(c>=32 && c<127){
     ecrit_car(lig_curseur, col_curseur, c);
     avance_curseur();
+  }
+  
+  if(lig_curseur == 0){
+    lig_curseur = 1;
   }
 }
 
