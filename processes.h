@@ -21,7 +21,7 @@ struct process {
   struct process *next;
   uint32_t save_zone[5];
 
-  uint32_t reg[STACK_LENGTH];
+  uint32_t reg[STACK_LENGTH+1];
   };
 
 //void *context_idle, *context_proc1;
@@ -35,8 +35,6 @@ void fin_processus();
 void kill_dead_processes();
 void init_processes();
 void ctx_sw(void*, void*);
-void remove_sleep_head();
-//void remove_process(struct process *p);
 void add_process(struct process *p);
 void add_in_sleep (struct process *p);
 void wake_up_processes();

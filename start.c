@@ -27,7 +27,7 @@ void kernel_start(void)
     init_traitant_IT(32, traitant_IT_32);
 
     efface_ecran();
-    init_processes(8);
+    init_processes(50);
 
     while (1) {
         // cette fonction arrete le processeur

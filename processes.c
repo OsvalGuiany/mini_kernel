@@ -9,9 +9,9 @@
 struct process **processes;
 struct process *running;
 int N;
-uint32_t processes_created = 0;
+uint32_t processes_created = 0, current_pid = 0;
 struct process *head, *last;
-struct process *sleep_head, *sleep_last;
+struct process *sleep_head;
 struct process *dead_list;
 
 void idle(){
@@ -50,7 +50,7 @@ void proc3(){
 }
 
 void proc4(){
-  for (uint32_t i= 0; i < 7; i++) {
+  for (uint32_t i= 0; i < 10; i++) {
     printf("[%s] pid = %i\n", mon_nom(), mon_pid());
     sti();
     hlt();
@@ -126,17 +126,18 @@ uint32_t create_process(char *name, void *proc_address){
     return -1;
   }
   struct process *p = malloc(sizeof(struct process));
-  p->pid  = processes_created;
+  p->pid  = current_pid;
   strcpy(p->name, name);
   p->state = ACTIVABLE;
   p->wake_time = 0;
   p->next = NULL;
   p->save_zone[1] = (uint32_t)(p->reg+STACK_LENGTH-1);
-  p->reg[511] = (uint32_t )proc_address;
-  p->reg[510] = (uint32_t)&fin_processus;
+  p->reg[STACK_LENGTH-1] = (uint32_t )proc_address;
+  p->reg[STACK_LENGTH] = (uint32_t)&fin_processus;
   add_process(p);
-  processes[processes_created] = p;
+  //processes[processes_created] = p;
   
+  current_pid ++;
   processes_created ++;
   return processes_created - 1 ;
 
@@ -161,11 +162,13 @@ void kill_dead_processes(){
       struct process *p = jet;
       jet = jet->next;
       printf("le processus %d est mort à %d\n", p->pid, get_compteur());
+      processes_created --;
       free(p);
     }
   }
-}
 
+  dead_list = NULL;
+}
 
 // on peut s'entrainer a utiliser GDB avec ce code de base
 // par exemple afficher les valeurs de x, n et res avec la commande display
@@ -180,6 +183,7 @@ void init_processes(int n){
   strcpy(processes[0]->name, "idle");
   processes[0]->state = ELU;
   processes_created++;
+  current_pid ++;
   
   if(create_process("proc1", &proc1) == -1){
     printf("the process proc1 cannot be created \n");
@@ -187,7 +191,7 @@ void init_processes(int n){
   }
 
   if(create_process("proc2", &proc2) == -1 ){
-    printf("the process proc2 cannot be  if (p->state == ENDORMI ) { created \n");
+    printf("the process proc2 cannot be created \n");
     return ;
   }
 
@@ -222,11 +226,6 @@ void add_process(struct process *p){
 
   p->next = NULL;
 
-  if(p->state == ENDORMI) {
-    add_in_sleep(p);
-    return;
-  }
-
   p->state = ACTIVABLE;
 
   if(head == NULL ) {
@@ -249,7 +248,6 @@ void add_in_sleep (struct process *p) {
 
   if(sleep_head == NULL ) {
     sleep_head = p;
-    sleep_last = p;
   } else {
     struct process *jet, *prev;
      jet = sleep_head;
@@ -260,34 +258,14 @@ void add_in_sleep (struct process *p) {
     }
 
     p->next = jet;
-
-    if(prev != NULL ) {
-      prev->next = p;
-    } else if (jet == NULL ) {
-      prev->next = p;
-      sleep_last = p;
-    }else {
+    if (prev == NULL) {
       sleep_head = p;
+    }
+    else {
+      prev->next = p;
     }
   
   }
-}
-
-void remove_sleep_head() {
-  struct process *p = sleep_head;
-
-  if( p == sleep_last ) {
-    sleep_head = NULL;
-    sleep_last = NULL;
-  }
-  else{
-    sleep_head = sleep_head->next;
-  }
-  p->wake_time = 0;
-  p->next = NULL;
-
-  p->state = ACTIVABLE;
-  add_process(p);
 }
 
 void wake_up_processes(){
@@ -297,7 +275,15 @@ void wake_up_processes(){
     printf("waking up of process %d with sleep time %d \n", 
       sleep_head->pid, sleep_head->wake_time);
 
-    remove_sleep_head();
+    struct process *p = sleep_head;
+    sleep_head = sleep_head->next;
+
+    p->wake_time = 0;
+    p->next = NULL;
+
+    p->state = ACTIVABLE;
+    printf("the head has been removed pid = %d \n", p->pid);
+    add_process(p);
   }
 }
 
